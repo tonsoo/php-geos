@@ -1,0 +1,13 @@
+.git
+.libs
+.deps
+*.lo
+*.la
+*.o
+*.so
+modules/
+autom4te.cache/
+config.log
+config.status
+Makefile
+libtool

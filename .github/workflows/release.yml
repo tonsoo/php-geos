@@ -1,0 +1,56 @@
+name: Build and Release GEOS Bundles
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-binaries:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - php: "8.5"
+            distro: "bookworm"
+            arch: "amd64"
+          - php: "8.5"
+            distro: "bookworm"
+            arch: "arm64"
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
+      - name: Build Bundle in Docker
+        run: |
+          rm -rf bundle && mkdir -p bundle
+
+          docker build --target builder \
+            --platform linux/${{ matrix.arch }} \
+            --build-arg PHP_VERSION=${{ matrix.php }} \
+            --build-arg DISTRO=${{ matrix.distro }} \
+            -t geos-tmp .
+
+          docker create --name extract geos-tmp
+          docker start extract
+
+          LIB_PATH=$(docker exec extract sh -c 'find /usr/lib -name "libgeos_c.so.1" | xargs dirname')
+          PHP_EXT_PATH=$(docker exec extract php-config --extension-dir)
+
+          mkdir -p "bundle${LIB_PATH}"
+          mkdir -p "bundle${PHP_EXT_PATH}"
+
+          docker cp "extract:${LIB_PATH}/." "bundle${LIB_PATH}/"
+          docker cp "extract:${PHP_EXT_PATH}/." "bundle${PHP_EXT_PATH}/"
+          
+          tar -czf geos-${{ matrix.php }}-linux-${{ matrix.distro }}-${{ matrix.arch }}.tar.gz -C bundle .
+          
+          docker rm -f extract
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: geos-*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

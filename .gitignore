@@ -72,3 +72,5 @@ tests/*/*/*.exp
 tests/*/*/*.sh
 tmp-php.ini
 !/docker/**/Makefile
+bundle/*
+geos-*.tar.gz
