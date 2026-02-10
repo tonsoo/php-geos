@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 set -eux
 
+REPO="tonsoo"
 GEOS_VERSION="${GEOS_VERSION:-v1.0.0}"
 PHP_VERSION="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
 
@@ -20,7 +21,7 @@ case "$ARCH" in
 esac
 
 TARBALL="geos-${PHP_VERSION}-linux-${DISTRO}-${ARCH}.tar.gz"
-URL="https://github.com/ghsgabriel/php-geos/releases/download/${GEOS_VERSION}/${TARBALL}"
+URL="https://github.com/${REPO}/php-geos/releases/download/${GEOS_VERSION}/${TARBALL}"
 
 echo "Downloading $URL"
 curl -fL -o /tmp/geos.tar.gz "$URL"
